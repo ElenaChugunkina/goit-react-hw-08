@@ -1,24 +1,41 @@
-import React from 'react';
-import ContactList from '../../components/ContactList/ContactList';
-import ContactForm from '../ContactForm/ContactForm';
-import SearchBox from '../SearchBox/SearchBox';
-import css from './App.module.css'
-import { useDispatch } from 'react-redux';
-import { fetchContacts } from '../../redux/contactsOps';
-import { useEffect } from 'react';
 
-export default function App() {
+
+export const App = () => {
   const dispatch = useDispatch();
+  const isRefreshing = useSelector(selectIsRefreshing);
 
   useEffect(() => {
-    dispatch(fetchContacts());
+    dispatch(refreshUser());
   }, [dispatch]);
-  return (
-    <div className={css.appContainer}>
-      <h1 className={css.title}>Phonebook</h1>
-      <ContactForm />
-      <SearchBox />
-      <ContactList />
-    </div>
+
+  return isRefreshing ? (
+    <div className={css.loader}><PropagateLoader color="#2501ff" size={25} speedMultiplier={2}/></div>
+  ) : (
+    
+    <Layout>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route
+          path="/register"
+          element={
+            <RestrictedRoute redirectTo="/contacts" component={<RegisterPage />} />
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            <RestrictedRoute redirectTo="/contacts" component={<LoginPage />} />
+          }
+        />
+        <Route
+          path="/contacts"
+          element={
+            <PrivateRoute redirectTo="/login" component={<ContactsPage />} />
+          }
+        />
+      </Routes>
+    </Layout>
   );
-}
+};
+
+

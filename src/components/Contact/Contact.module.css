@@ -12,3 +12,12 @@
     width: 60px;
     
 }
+
+.buttonContainer {
+    display: flex;
+    gap: 15px;
+}
+
+.icon {
+    margin-right: 7px;
+}
