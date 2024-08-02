@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { FaUser, FaPhoneAlt } from 'react-icons/fa';
 import { deleteContacts, editContact } from '../../redux/contacts/operations';
 import { openDeleteModal, closeDeleteModal, openEditModal, closeEditModal } from '../../redux/contacts/slice';
+
 import DeleteModal from '../DeleteModal/DeleteModal';
 import EditContactModal from '../EditContactModal/EditContactModal';
 import css from './Contact.module.css';

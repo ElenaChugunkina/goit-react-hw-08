@@ -1,27 +1,29 @@
 
 
-
 import { createSlice } from '@reduxjs/toolkit';
-import { addContacts, deleteContacts, fetchAll, editContact } from './operations';
+import { register, logIn, logOut, refreshUser } from '../auth/operations';
+import { fetchAll, addContacts, deleteContacts, editContact } from './operations';
 
 const contactsSlice = createSlice({
   name: 'contacts',
   initialState: {
     items: [],
-    loading: false,
-    error: false,
+    filter: '',
     deleteModalOpen: false,
     editModalOpen: false,
-    currentContact: null,
+    currentContact: {},
   },
   reducers: {
+    changeFilter(state, action) {
+      state.filter = action.payload;
+    },
     openDeleteModal(state, action) {
       state.deleteModalOpen = true;
       state.currentContact = action.payload;
     },
     closeDeleteModal(state) {
       state.deleteModalOpen = false;
-      state.currentContact = null;
+      state.currentContact = {};
     },
     openEditModal(state, action) {
       state.editModalOpen = true;
@@ -29,66 +31,54 @@ const contactsSlice = createSlice({
     },
     closeEditModal(state) {
       state.editModalOpen = false;
-      state.currentContact = null;
+      state.currentContact = {};
     },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchAll.pending, (state) => {
-        state.loading = true;
-        state.error = false;
+      .addCase(register.fulfilled, (state, action) => {
+        state.user = action.payload.user;
+        state.token = action.payload.token;
+        state.isLoggedIn = true;
+      })
+      .addCase(logIn.fulfilled, (state, action) => {
+        state.user = action.payload.user;
+        state.token = action.payload.token;
+        state.isLoggedIn = true;
+      })
+      .addCase(logOut.fulfilled, (state) => {
+        state.user = { name: null, email: null };
+        state.token = null;
+        state.isLoggedIn = false;
+        
+        state.items = [];
+      })
+      .addCase(refreshUser.pending, (state) => {
+        state.isRefreshing = true;
+      })
+      .addCase(refreshUser.fulfilled, (state, action) => {
+        state.user = action.payload;
+        state.isLoggedIn = true;
+        state.isRefreshing = false;
+      })
+      .addCase(refreshUser.rejected, (state) => {
+        state.isRefreshing = false;
       })
       .addCase(fetchAll.fulfilled, (state, action) => {
         state.items = action.payload;
-        state.loading = false;
-      })
-      .addCase(fetchAll.rejected, (state) => {
-        state.loading = false;
-        state.error = true;
-      })
-      .addCase(addContacts.pending, (state) => {
-        state.loading = true;
-        state.error = false;
       })
       .addCase(addContacts.fulfilled, (state, action) => {
         state.items.push(action.payload);
-        state.loading = false;
-      })
-      .addCase(addContacts.rejected, (state) => {
-        state.loading = false;
-        state.error = true;
-      })
-      .addCase(deleteContacts.pending, (state) => {
-        state.loading = true;
-        state.error = false;
       })
       .addCase(deleteContacts.fulfilled, (state, action) => {
-        state.items = state.items.filter(
-          (item) => item.id !== action.payload.id
-        );
-        state.loading = false;
-      })
-      .addCase(deleteContacts.rejected, (state) => {
-        state.loading = false;
-        state.error = true;
-      })
-      .addCase(editContact.pending, (state) => {
-        state.loading = true;
-        state.error = false;
+        state.items = state.items.filter((contact) => contact.id !== action.payload.id);
       })
       .addCase(editContact.fulfilled, (state, action) => {
-        const index = state.items.findIndex((item) => item.id === action.payload.id);
-        if (index !== -1) {
-          state.items[index] = action.payload;
-        }
-        state.loading = false;
-      })
-      .addCase(editContact.rejected, (state) => {
-        state.loading = false;
-        state.error = true;
+        state.items = state.items.map((contact) =>
+          contact.id === action.payload.id ? action.payload : contact
+        );
       });
-  }
+  },
 });
-
 export const { openDeleteModal, closeDeleteModal, openEditModal, closeEditModal } = contactsSlice.actions;
-export default contactsSlice.reducer;
+export const contactsReducer = contactsSlice.reducer;
